@@ -7,6 +7,7 @@
 	<meta charset="utf-8">
 {% include "website/blocks/canonical_url.html" %}
 
+        {% compress css %}
 	{% block forestyle %}{% endblock %}
 	<!--
 	<link href="/style/website.css" rel="stylesheet" type="text/css" media="screen" />
@@ -17,7 +18,9 @@
 	<link rel="stylesheet" type="text/css" href="/style/jquery.mobile.css" />
 	<link rel="stylesheet" type="text/css" href="/style/tooltip.css" />
 	<link href="/style/screen.css"  rel="stylesheet" type="text/css" media="screen" />-->
-	
+	{% endcompress %}
+
+        {% compress js %}
 	{% include "website/fancybox_stylesheets.html" %}
 	<link rel="stylesheet" type="text/css" href="/media/style/main.css" />
 	<link rel="stylesheet" type="text/css" href="/media/js/flexcomplete/jquery.flexcomplete.css" />
@@ -42,8 +45,20 @@
 	    document.getElementById('username').style.backgroundColor="#FCC";
 	    document.getElementById('password').style.backgroundColor="#FCC"; 
 	}
+	
+	$(document).ready(function() {
+		$("#trouble_signing_in_a").click(function (){
+			controller.postRequest('/account/', {ajax: 'trouble_signing_in'}); return false;
+		});
+			
+			
+		$("#form_sign_in_submit_button").click(function (){
+			controller.submitForm('#form_sign_in');
+			return false;
+		});
+	});
 	</script>
-
+        {% endcompress %}
 </head>
 
 <body style="">
@@ -55,15 +70,16 @@
 
 {% include "website/footer.html" %}
 
+{% compress js %}
 {% block endjs %}{% endblock %}
-
+{% include "website/fancybox_scripts.html" %}
+{% endcompress %}
 
 {% block dialog %}
 {% include "base_message_dialog.html" %}
 {% include "base_info_dialog.html" %}
 {% endblock %}
 
-{% include "website/fancybox_scripts.html" %}
 {% include "website/blocks/system_message.html" %}
 <div id="fromServer"></div>
 <div id="fancyboxformDiv"></div>
