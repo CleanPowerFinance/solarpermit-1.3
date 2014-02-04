@@ -3,6 +3,7 @@
 
 {% block title %}Home{% endblock %}
 {% block forestyle %}
+        {% compress css %}
 {#	<!--link rel="stylesheet" type="text/css" href="/media/style/page.css" /-->
 	<link rel="stylesheet" type="text/css" href="/media/style/anythingslider.css" />
 	<style>
@@ -257,9 +258,6 @@
 {# EO hiding unused element #}
 
 {# Modifying existing styling rules #}
-		body {
-			padding: 108px 0 0 0 !important;
-		}
 		#keep_me_signed_in {
 			margin-left: 0;
 		}
@@ -348,6 +346,7 @@
 {# EO home page content #}
 
 	</style>
+        {% endcompress %}
 {% endblock %}
 
 {% block forejs %}

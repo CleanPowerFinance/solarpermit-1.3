@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.template.loader import get_template
@@ -14,9 +15,9 @@ from website.utils.mathUtil import MathUtil
 
 from website.utils.messageUtil import MessageUtil
 
-from website.models import UserDetail, OrganizationMember
+from website.models import Jurisdiction, UserDetail, OrganizationMember
+from website.models import UserDetail, OrganizationMember, news
 from website.utils.messageUtil import MessageUtil,add_system_message,get_system_message
-from website.utils.templateUtil import TemplateUtil
 
 def states(request):
     data = {}
@@ -42,23 +43,40 @@ def states(request):
     return requestProcessor.render_to_response(request,'website/states.html', data, '') 
 
 def state_jurisdictions(request, abbreviation):
-    data = {}
+    data = { 'groups': [],
+             'state_name': dict(US_STATES)[abbreviation] }
     requestProcessor = HttpRequestProcessor(request)
-    
-    template_util = TemplateUtil()
-    data['state_name'] = dict(US_STATES)[abbreviation]
-    data['list_exist'] = template_util.generated_state_exist(abbreviation)
-    data['list_template'] = template_util.generated_state_template_path(abbreviation)
-    return requestProcessor.render_to_response(request, 'website/site_map_state.html', data, '') 
+    jurisdiction_type_groups = [{ 'name': 'State',
+                                  'ids': ['S'],
+                                  'label': 'State Locations' },
+                                { 'name': 'County',
+                                  'ids': ['CO', 'SC', 'CONP', 'CC'],
+                                  'label': 'County Locations' },
+                                { 'name': 'County Field Offices',
+                                  'ids': ['SCFO'],
+                                  'label': 'County Field Offices' },
+                                { 'name': 'Cities',
+                                  'ids': ['CI', 'CINP', 'IC'],
+                                  'label': 'City Locations'},
+                                { 'name': 'Unincorporated',
+                                  'ids': ['U'],
+                                  'label': 'Unincorporated Locations' }]
+    any_exist = False
+    for group in jurisdiction_type_groups:
+        jurisdictions = Jurisdiction.objects.filter(state = abbreviation,
+                                                    jurisdiction_type__in = group['ids']).order_by('name')
+        if len(jurisdictions) > 0:
+            any_exist = True
+            items_per_column = int(math.ceil(float(len(jurisdictions)) / settings.PAGE_COLUMNS))
+            group['columns'] = [jurisdictions[i:i+items_per_column] for i in xrange(0, len(jurisdictions), items_per_column)]
+            data['groups'].append(group)
+    data['any_exist'] = any_exist
+    return requestProcessor.render_to_response(request, 'website/site_map_state.html', data, '')
 
 def site_map(request):
     data = {}
     requestProcessor = HttpRequestProcessor(request)
-    
-    template_util = TemplateUtil()
-    data['list_exist'] = template_util.generated_template_exist('site_map_list.html')
-    
-    return requestProcessor.render_to_response(request,'website/site_map.html', data, '') 
+    return requestProcessor.render_to_response(request, 'website/site_map.html', {}, '') 
 
 def get_info(request):
     data = {}
@@ -178,15 +196,28 @@ def email_feedback(data):
     msg.content_subtype = "html"   
     #msg.send()
 
-def news(request):
+def news_static(request):
     data = {}
     data['current_nav'] = 'news'
-    
+
     message_data = get_system_message(request) #get the message List
     data =  dict(data.items() + message_data.items())   #merge message list to data
-    
+
     requestProcessor = HttpRequestProcessor(request)
     return requestProcessor.render_to_response(request,'website/info/news.html', data, '')
+
+def news_dynamic(request):
+    data = {}
+    data['current_nav'] = 'news'
+    data['pressreleases'] = news.PressRelease.objects.all().order_by('published')
+    data['articles'] = news.Article.objects.all().order_by('published')
+    data['events'] = news.Event.objects.all().filter(expiration__gte=datetime.now()).order_by('published')
+
+    message_data = get_system_message(request) #get the message List
+    data =  dict(data.items() + message_data.items())   #merge message list to data
+
+    requestProcessor = HttpRequestProcessor(request)
+    return requestProcessor.render_to_response(request,'website/info/news_dynamic.html', data, '')
 
 def about(request):
     data = {}

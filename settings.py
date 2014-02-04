@@ -189,7 +189,7 @@ INSTALLED_APPS = (
     'djkombu',
     'followit',  
     'sorl.thumbnail',
-    'dajax',    
+    'dajax',
     'website',
     'compressor',
     'django_extensions',
@@ -290,5 +290,8 @@ COMPRESS_CSS_FILTERS = ['compressor.filters.css_default.CssAbsoluteFilter',
 COMPRESS_JS_FILTERS = ['compressor.filters.closure.ClosureCompilerFilter']
 COMPRESS_CLOSURE_COMPILER_BINARY = '/usr/local/bin/closure'
 COMPRESS_CLOSURE_COMPILER_ARGUMENTS = '--language_in ECMASCRIPT5 --summary_detail_level 3'
+
+# do not run migrations during testing
+SOUTH_TESTS_MIGRATE=False
 
 from settings_local import *
